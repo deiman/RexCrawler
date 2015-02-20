@@ -10,7 +10,7 @@ control on granularity and less synchronization.
 
 ## Getting started
 A brief overview on how to use RexCrawler. 
-It is so simple that you can jump to the [sample](https://github.com/shake0/RexCrawler/tree/master/org/rexcrawler/CrawlerExample.java) 
+It is so simple that you can jump to the [sample](https://github.com/shake0/RexCrawler/blob/master/src/org/rexcrawler/CrawlerExample.java) 
 or generate the Javadoc with `javadoc -d doc/ -protected -sourcepath src/ org.rexcrawler`
 
 

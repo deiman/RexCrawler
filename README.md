@@ -9,16 +9,18 @@ by partitioning its the local workload. A key benefit of this approach is a grea
 control on granularity and less synchronization.
 
 ## Getting started
-A brief overview on how to use RexCrawler.
-It is so simple that you can jump to the [sample](https://github.com/shake0/RexCrawler/tree/master/org/rexcrawler/CrawlerExample.java)
+A brief overview on how to use RexCrawler. 
+It is so simple that you can jump to the [sample](https://github.com/shake0/RexCrawler/tree/master/org/rexcrawler/CrawlerExample.java) 
+or generate the Javadoc with `javadoc -d doc/ -protected -sourcepath src/ org.rexcrawler`
+
 
 #### Define the handler
 The handler (a class that extends the *CrawlerHandler*) allows you to control
 the flow of the search. Specifically what you collect from the various HTTP responses
 and which URLs will be submitted for continuing the search.
 
-*Important:* due to its multithreaded nature, all collection use to store information
-to retrieve at the end of the search must be annotated with *@Reduced*
+*Important:* due to its multithreaded nature, all collection used to store information
+to be retrieved at the end of the search must be annotated with *@Reduced*
 
 #### Use the parser
 Assuming you defined an handler _myHandler_ then you can run it

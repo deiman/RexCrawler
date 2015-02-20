@@ -42,6 +42,11 @@ public abstract class CrawlerHandler implements Cloneable {
 	
 	/**
 	 * Prototype constructor
+	 * 
+	 * This method should be redefined if 
+	 * additional field are added for reducing.
+	 * 
+	 * @see #reduce(CrawlerHandler)
 	 */
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
@@ -175,12 +180,23 @@ public abstract class CrawlerHandler implements Cloneable {
 	//--------------------------------------------
 	// RexCrawler
 	
-	/*
-	 * Merge the shared collection.
-	 * other.class must match this.class so they have the same Field objects.
+	/**
+	 * Merge the shared collections.
+	 * 
+	 * <code>other.class</code> must match <code>this.class</code> 
+	 * so they have the same Field objects. 
 	 * This should be guarantee by the prototype pattern.
+	 * 
+	 * Since only Collections annotated with @Reduced are automatically reduced
+	 * this method allows you to collect other fields. 
+	 * <strong>
+	 * Internally only the calling object's containers are retained, therefore
+	 * the calling object should include the other's containers.
+	 * </strong>
+	 * 
+	 * @param other crawlerHandler to include
 	 */
-	void reduce(CrawlerHandler other) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException{
+	protected void reduce(CrawlerHandler other) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException{
 		for(Field f: this.reducedFields){
 			if(Collection.class.isAssignableFrom(f.getType()))
 				reduceCollection.invoke(f.get(this), f.get(other));

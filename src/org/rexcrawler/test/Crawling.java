@@ -118,10 +118,20 @@ public class Crawling {
 		assertEquals(traversedUrl /2, crawler.getFollowedLinkCount());
 	}
 	
-	@Test(expected=IllegalArgumentException.class)
+	@Test
 	public void illegalSearchLength(){
 		Crawler crawler = new Crawler();
 		crawler.setSearchLength(0);
+		assertEquals(null, crawler.getSearchLength());
+		crawler.setSearchLength(-15);
+		assertEquals(null, crawler.getSearchLength());
+		final int length = 10;
+		crawler.setSearchLength(length);
+		assertEquals(length, crawler.getSearchLength().intValue());
+		crawler.setSearchLength(0);
+		assertEquals(null, crawler.getSearchLength());
+		crawler.setSearchLength(-15);
+		assertEquals(null, crawler.getSearchLength());
 	}
 	
 	@Test

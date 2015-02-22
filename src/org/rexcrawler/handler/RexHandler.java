@@ -39,6 +39,12 @@ public class RexHandler extends CrawlerHandler{
 		this.filters = new HashMap<>();
 	}
 	
+	public RexHandler addNode(String nodeName){
+		return addFilter(Pattern.compile(".*<\\s?"+nodeName +"[^>]*?>"
+				+ "(.*?)"
+				+ "<\\s?/"+nodeName+"\\s?>", Pattern.DOTALL), 1);
+	}
+	
 	/**
 	 * Add a filter
 	 * @param pat pattern used to match

@@ -68,7 +68,7 @@ myCrawler.run(target);
 or in other word, how many URL a single thread will handle by itself.
 
 *setSearchDepth* is the upper limit for how many link the crawler will
-follow. By default this is 1.
+follow. By default this is limited to the number of targets.
 
 ## Advanced
 For those who like to start from scratch! 

@@ -32,9 +32,6 @@ public class CrawlerExample {
 		}
 	}
 	
-	// Change to an existing URL
-	public static final String SEARCH_ROOT="put_your_target_site";
-	
 	public static void main(String[] args) throws MalformedURLException {
 		// Create the crawler
 		Crawler rexcrawler = new Crawler();
@@ -47,10 +44,10 @@ public class CrawlerExample {
 		rexcrawler.setChunkSize(15);     // Granularity: 15 URL per thread
 		
 		// Set search limit
-		rexcrawler.setSearchDepth(100); // Follow maximum 100 links
+		rexcrawler.setSearchLength(100); // Follow maximum 100 links
 		
 		// Make a target to parse
-		URL target = new URL(SEARCH_ROOT);
+		URL target = new URL(args[0]);
 		
 		// Crawl
 		rexcrawler.run(target);

@@ -11,8 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Page request object
- * provide common action for an HTTP request.
+ * Page wrapper
  * 
  * @author shake0
  *

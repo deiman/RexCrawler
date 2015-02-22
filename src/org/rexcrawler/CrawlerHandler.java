@@ -243,14 +243,13 @@ public abstract class CrawlerHandler implements Cloneable {
 		}
 	}
 	
-	/*
+	/**
 	 * Shared flag
 	 * 
 	 * This shared object is used to signaling the abortion of the
 	 * current search.
 	 */
-	AtomicBoolean abort;
-	          
+	protected AtomicBoolean abort;
 	private   Field[]       reducedFields;
 	private   Method        reduceCollection;
 }

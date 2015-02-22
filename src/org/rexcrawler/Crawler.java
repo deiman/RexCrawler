@@ -37,7 +37,7 @@ public class Crawler extends RecursiveAction {
 		this.lock             = new AtomicInteger(0);
 		this.linkFollowed     = new AtomicInteger(0);
 		this.chunkSize        = NO_FORK;
-		this.searchDepth      = SEARCH_LIMIT;
+		this.searchLength      = SEARCH_LIMIT;
 		this.links = new LinkedList<String>();
 	}
 	
@@ -51,7 +51,7 @@ public class Crawler extends RecursiveAction {
 		this.linkFollowed     = p.linkFollowed;
 		this.handler          = (CrawlerHandler) p.handler.clone();
 		this.chunkSize        = p.chunkSize;
-		this.searchDepth      = p.searchDepth;
+		this.searchLength      = p.searchLength;
 		this.links = new LinkedList<String>();
 		
 		this.lock.incrementAndGet();
@@ -85,6 +85,8 @@ public class Crawler extends RecursiveAction {
 			throw new IllegalArgumentException("CrawlerHandler undefined");
 		// load targets
 		for(URL u : targets) this.urls.add(u.toString());
+		if(this.searchLength < targets.length)
+			setSearchLength(targets.length);
 		// execute
 		if(parallel > 0)
 			new ForkJoinPool(parallel).invoke(this);
@@ -103,7 +105,7 @@ public class Crawler extends RecursiveAction {
 				List<String> delegatedSet = null;
 				synchronized(linkFollowed){
 					delegatedSet             = splitWorkLoad();
-					final int remainingTasks = searchDepth - linkFollowed.get();
+					final int remainingTasks = searchLength - linkFollowed.get();
 					if(remainingTasks <= 0) break;
 					if(this.urls.size() > remainingTasks) this.urls = this.urls.subList(0, remainingTasks);
 					linkFollowed.addAndGet(this.urls.size());
@@ -192,7 +194,7 @@ public class Crawler extends RecursiveAction {
 	}
 	
 	private boolean isFollowingLinkLimitExceeded(){
-		return linkFollowed.get() > searchDepth;
+		return linkFollowed.get() > searchLength;
 	}
 	
 	//--------------------------------------------
@@ -234,8 +236,8 @@ public class Crawler extends RecursiveAction {
 	 * equal to this.
 	 * @return limit followed links.
 	 */
-	public int getSearchDepth(){
-		return this.searchDepth;
+	public int getSearchLength(){
+		return this.searchLength;
 	}
 	
 	/**
@@ -258,7 +260,8 @@ public class Crawler extends RecursiveAction {
 	 * @return the calling object
 	 */
 	public Crawler setChunkSize(int chunkSize) {
-		this.chunkSize = (chunkSize > 0)?chunkSize:NO_FORK;
+		if(chunkSize > 0)
+			this.chunkSize = chunkSize;
 		return this;
 	}
 
@@ -267,11 +270,13 @@ public class Crawler extends RecursiveAction {
 	 * If the total number of links followed reach this limit, the search
 	 * will terminate.
 	 * 
-	 * @param searchDepth maximum number of followed links
+	 * @param searchLength maximum number of followed links
 	 * @return the calling object
 	 */
-	public Crawler setSearchDepth(int searchDepth) {
-		this.searchDepth = (searchDepth > 0)?searchDepth:SEARCH_LIMIT;
+	public Crawler setSearchLength(int searchLength) {
+		if(searchLength <= 0)
+			throw new IllegalArgumentException("Invalid length: "+ searchLength);
+		this.searchLength = searchLength;
 		return this;
 	}
 	
@@ -292,7 +297,7 @@ public class Crawler extends RecursiveAction {
 	private static final int NO_FORK        = -1;
 	private static final int SEARCH_LIMIT   = 1;
 	private int chunkSize;
-	private int searchDepth;
+	private int searchLength;
 	// states
 	private AtomicInteger      lock;
 	private AtomicInteger      linkFollowed;

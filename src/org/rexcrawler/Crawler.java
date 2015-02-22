@@ -1,16 +1,12 @@
 package org.rexcrawler;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -39,7 +35,6 @@ public class Crawler extends RecursiveAction {
 		this.urls             = new LinkedList<String>();
 		this.master           = null;
 		this.lock             = new AtomicInteger(0);
-		this.abort            = new AtomicBoolean(false);
 		this.linkFollowed     = new AtomicInteger(0);
 		this.chunkSize        = NO_FORK;
 		this.searchDepth      = SEARCH_LIMIT;
@@ -53,7 +48,6 @@ public class Crawler extends RecursiveAction {
 		this.urls             = null;
 		this.master           = (p.master == null)?p:p.master;
 		this.lock             = p.lock;
-		this.abort            = p.abort;
 		this.linkFollowed     = p.linkFollowed;
 		this.handler          = (CrawlerHandler) p.handler.clone();
 		this.chunkSize        = p.chunkSize;
@@ -114,7 +108,7 @@ public class Crawler extends RecursiveAction {
 					if(this.urls.size() > remainingTasks) this.urls = this.urls.subList(0, remainingTasks);
 					linkFollowed.addAndGet(this.urls.size());
 				}
-				if(delegatedSet != null && isForkingEnabled() && ! abort.get()){
+				if(delegatedSet != null && isForkingEnabled() && ! handler.abort.get()){
 					Crawler child = new Crawler(this);
 					child.urls = delegatedSet;
 					child.fork();
@@ -176,15 +170,15 @@ public class Crawler extends RecursiveAction {
 	
 	private void abort() {
 		// TODO: Test
-		this.abort.set(true);
+		this.handler.abort.set(true);
 		this.urls.clear();
 		this.links.clear();
 	}
 	
 	private void resetState() {
 		// TODO: Test
+		this.handler.abort.set(false);
 		this.lock             = new AtomicInteger(0);
-		this.abort            = new AtomicBoolean(false);
 		this.linkFollowed     = new AtomicInteger(0);
 		this.links            = new LinkedList<>();
 	}
@@ -205,25 +199,11 @@ public class Crawler extends RecursiveAction {
 	// Parsing
 	
 	private void parse(){
-		for(String url : urls){
-			if(abort.get()){ abort(); break; }
-			
-			try{
-				HttpURLConnection connection = handler.makeConnection(url);
-				Page              page       = new Page(connection);
-				synchronized (handler) { // prevent master - reduce collisions
-					if(abort.get() || ! handler.parsePage(page))
-					{ abort(); break; }
-				}
-				links.addAll(handler.filterLinks(page, page.getHyperLinks()));
-			} catch (MalformedURLException e){
-				System.err.println(e.getLocalizedMessage());
-				continue;
-			} catch (IOException e) {
-				e.printStackTrace();
-				break;
-			}
-		}
+		List<String> newUrlSet = this.handler.parse(this.urls);
+		if(newUrlSet == null)
+			abort();
+		else
+			this.links.addAll(newUrlSet);
 	}
 	
 	//--------------------------------------------
@@ -275,9 +255,11 @@ public class Crawler extends RecursiveAction {
 	 * will fork, delegate the surplus to its child, and execute.
 	 * 
 	 * @param chunkSize minimum number of links to fork
+	 * @return the calling object
 	 */
-	public void setChunkSize(int chunkSize) {
+	public Crawler setChunkSize(int chunkSize) {
 		this.chunkSize = (chunkSize > 0)?chunkSize:NO_FORK;
+		return this;
 	}
 
 	/**
@@ -286,17 +268,21 @@ public class Crawler extends RecursiveAction {
 	 * will terminate.
 	 * 
 	 * @param searchDepth maximum number of followed links
+	 * @return the calling object
 	 */
-	public void setSearchDepth(int searchDepth) {
+	public Crawler setSearchDepth(int searchDepth) {
 		this.searchDepth = (searchDepth > 0)?searchDepth:SEARCH_LIMIT;
+		return this;
 	}
 	
 	/**
 	 * Set the handle for the parsing
-	 * @param handler 
+	 * @param handler
+	 * @return the calling object
 	 */
-	public void setHandler(CrawlerHandler handler){
+	public Crawler setHandler(CrawlerHandler handler){
 		this.handler = handler;
+		return this;
 	}
 	
 	//--------------------------------------------
@@ -309,7 +295,6 @@ public class Crawler extends RecursiveAction {
 	private int searchDepth;
 	// states
 	private AtomicInteger      lock;
-	private AtomicBoolean      abort;
 	private AtomicInteger      linkFollowed;
 	private Crawler            master;
 	private CrawlerHandler     handler;

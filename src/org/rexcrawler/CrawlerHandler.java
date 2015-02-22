@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
@@ -33,6 +34,7 @@ public abstract class CrawlerHandler implements Cloneable {
 	
 	public CrawlerHandler() {
 		try {
+			abort            = new AtomicBoolean(false);
 			reduceCollection = Collection.class.getDeclaredMethod("addAll", new Class<?>[]{Collection.class});
 			findReducedFields();
 		} catch (NoSuchMethodException | SecurityException e) {
@@ -113,6 +115,44 @@ public abstract class CrawlerHandler implements Cloneable {
 	
 	//--------------------------------------------
 	// Parsing
+	
+	/**
+	 * This method contains the whole routine for the parser.<br/>
+	 * 
+	 * <code>urls</code> is the list of URL to parse, this list
+	 * is 1 <= urls.length() <= chunkSize.
+	 * The returned list will become the list of URL to parse, if
+	 * this list exceed <code>chunkSize</code> elements only the first <code>chunkSize</code>
+	 * element will be returned to this thread and the remaining URLs will
+	 * be delagated to another thread. Returning null will be 
+	 * interpreted as an abort signal.
+	 * 
+	 * @param urls list to parse
+	 * @return the url list to be parsed or null to abort.
+	 */
+	protected List<String> parse(List<String> urls){
+		List<String> links = new LinkedList<>();
+		for(String url : urls){
+			if(abort.get()){ return null; }
+			
+			try{
+				HttpURLConnection connection = makeConnection(url);
+				Page              page       = new Page(connection);
+				synchronized (this) { // prevent master - reduce collisions
+					if(abort.get() || ! parsePage(page))
+					{ return null;}
+				}
+				links.addAll(filterLinks(page, page.getHyperLinks()));
+			} catch (MalformedURLException e){
+				System.err.println(e.getLocalizedMessage());
+				continue;
+			} catch (IOException e) {
+				e.printStackTrace();
+				break;
+			}
+		}
+		return links;
+	}
 	
 	/**
 	 * Parsing function
@@ -203,6 +243,14 @@ public abstract class CrawlerHandler implements Cloneable {
 		}
 	}
 	
-	private Field[]      reducedFields;
-	private Method       reduceCollection;
+	/*
+	 * Shared flag
+	 * 
+	 * This shared object is used to signaling the abortion of the
+	 * current search.
+	 */
+	AtomicBoolean abort;
+	          
+	private   Field[]       reducedFields;
+	private   Method        reduceCollection;
 }

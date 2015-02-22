@@ -1,10 +1,15 @@
-package org.rexcrawler;
+package org.rexcrawler.test;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.rexcrawler.Crawler;
+import org.rexcrawler.CrawlerHandler;
+import org.rexcrawler.Page;
+import org.rexcrawler.Reduced;
 
 public class CrawlerExample {
 	static class MyHandler extends CrawlerHandler {

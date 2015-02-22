@@ -13,6 +13,12 @@ import java.util.regex.Pattern;
 import org.rexcrawler.CrawlerHandler;
 import org.rexcrawler.Page;
 
+/**
+ * A common handler based on regular expression.
+ * This class may parse the same page multiple times.
+ * @author shake0
+ *
+ */
 public class RexHandler extends CrawlerHandler{
 	
 	/*
@@ -33,12 +39,44 @@ public class RexHandler extends CrawlerHandler{
 		this.filters = new HashMap<>();
 	}
 	
-	public void addFilter(Pattern pat){
-		addFilter(pat, 0);
+	/**
+	 * Add a filter
+	 * @param pat pattern used to match
+	 * @return the calling object
+	 */
+	public RexHandler addFilter(Pattern pat){
+		return addFilter(pat, 0);
 	}
 	
-	public void addFilter(Pattern pat, int group){
+	/**
+	 * Add filter and collect the specified group
+	 * @param pat pattern used to match
+	 * @param group 
+	 * @return the calling object
+	 */
+	public RexHandler addFilter(Pattern pat, int group){
 		filters.put(pat, new Filter(group));
+		return this;
+	}
+	
+	/**
+	 * Get the list of matches found for the pattern
+	 * @param pat
+	 * @return list of matches
+	 */
+	public List<String> getResult(Pattern pat){
+		return this.filters.get(pat).results;
+	}
+	
+	/**
+	 * Get all the matches.
+	 * @return
+	 */
+	public List<String> getResults(){
+		List<String> results = new LinkedList<>();
+		for(Filter value : this.filters.values())
+			results.addAll(value.results);
+		return results;
 	}
 
 	@Override

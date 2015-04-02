@@ -84,6 +84,7 @@ public class Crawler extends RecursiveAction {
 		if(this.handler == null)
 			throw new IllegalArgumentException("CrawlerHandler undefined");
 		// load targets
+		this.reinitialize();
 		for(URL u : targets) this.urls.add(u.toString());
 		// execute
 		if(parallel > 0)
@@ -93,9 +94,7 @@ public class Crawler extends RecursiveAction {
 	}
 	
 	@Override
-	protected void compute() {		
-		// RESET
-		if(isMaster()) resetState();
+	protected void compute() {
 		
 		while(! isFollowingLinkLimitExceeded()){
 			try {
@@ -178,12 +177,14 @@ public class Crawler extends RecursiveAction {
 		this.links.clear();
 	}
 	
-	private void resetState() {
-		// TODO: Test
+	@Override
+	public void reinitialize() {
 		this.handler.abort.set(false);
 		this.lock             = new AtomicInteger(0);
 		this.linkFollowed     = new AtomicInteger(0);
+		this.urls             = new LinkedList<String>();
 		this.links            = new LinkedList<>();
+		super.reinitialize();
 	}
 	
 	private boolean isMaster(){

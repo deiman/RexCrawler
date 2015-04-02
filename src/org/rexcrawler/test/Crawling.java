@@ -57,6 +57,18 @@ public class Crawling {
 	}
 	
 	@Test
+	public void taskRerun(){
+		Crawler crawler = new Crawler()
+		.setHandler(handler);
+		
+		crawler.run(this.root);
+		assertEquals(1, crawler.getFollowedLinkCount());
+		
+		crawler.setHandler(new URLCollector()).run(this.root);
+		assertEquals(1, crawler.getFollowedLinkCount());
+	}
+	
+	@Test
 	public void listCrawling() throws MalformedURLException {
 		Crawler crawler = new Crawler()
 			.setHandler(handler);

@@ -73,24 +73,30 @@ public class Page {
 		if(links != null) return this.links;
 		List<String> links   = new LinkedList<>();
 		if(this.isCharacterContent()){
-			Matcher matcher = Pattern.compile("href=\"([-a-zA-Z0-9+&/?=~_:,.]*)\"")
+			Matcher matcher = Pattern.compile("href=\"(.*?)\"")
 					.matcher(this.getContent());
 			while(matcher.find()){
 				String match  = matcher.group(1);
-				URL    domain = this.getConnection().getURL();
 				// normalize relative links
 				if(! match.contains("://")){
-					String base = domain.getProtocol() + "://" + domain.getAuthority();
-					if(match.startsWith("/"))
-						match = base + match;
-					else
-						match = base + domain.getPath() + match;
+					match = normalizeLink(match);
 				}
 				links.add(match);
 			}
 		}
 		this.links = links;
 		return links;
+	}
+	
+	public String normalizeLink(String relLink){
+		URL    domain = this.getConnection().getURL();
+		String base = domain.getProtocol() + "://" + domain.getAuthority();
+		String absLink = "";
+		if(relLink.startsWith("/"))
+			absLink = base + relLink;
+		else
+			absLink = base + domain.getPath() + relLink;
+		return absLink;
 	}
 	
 	/**
